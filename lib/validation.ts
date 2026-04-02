@@ -20,13 +20,18 @@ export const teamSchema = z.object({
   sport: z.string().optional(),
 });
 
-export const playerSchema = z.object({
-  firstName: z.string().min(1, "Le prénom est requis"),
-  lastName: z.string().min(1, "Le nom est requis"),
+export const addMemberSchema = z.object({
+  email: z.string().email("Email invalide"),
+  role: z.enum(["admin", "member"]).default("member"),
   position: z.string().optional(),
-  email: z.string().email("Email invalide").optional().or(z.literal("")),
   phone: z.string().optional(),
   teamId: z.number(),
+});
+
+export const updateMemberSchema = z.object({
+  role: z.enum(["admin", "member"]).optional(),
+  position: z.string().optional(),
+  phone: z.string().optional(),
 });
 
 export const eventSchema = z.object({

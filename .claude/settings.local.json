@@ -14,7 +14,9 @@
       "Bash(ls -la .env*)",
       "Bash(npm run:*)",
       "WebFetch(domain:api.github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npx tsx:*)",
+      "Bash(start \"\" \"c:\\\\LaLigueInformatique\\\\docs\\\\mcd.html\")"
     ],
     "additionalDirectories": [
       "C:\\LaLigueInformatique\\.claude",

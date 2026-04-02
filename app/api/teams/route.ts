@@ -15,7 +15,7 @@ export async function GET() {
       members: { some: { userId: Number(session.user.id) } },
     },
     include: {
-      _count: { select: { players: true, events: true, members: true } },
+      _count: { select: { events: true, members: true } },
     },
     orderBy: { createdAt: "desc" },
   });

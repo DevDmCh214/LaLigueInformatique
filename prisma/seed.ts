@@ -30,26 +30,14 @@ async function main() {
     data: { name: "Lyon Basket", sport: "Basketball" },
   });
 
-  // ── Membres d'équipe ────────────────────────────────────
+  // ── Membres d'équipe (fusion ancien Player + TeamMember) ─
   await prisma.teamMember.createMany({
     data: [
-      { userId: alice.id, teamId: fcParis.id, role: "admin" },
-      { userId: bob.id, teamId: fcParis.id, role: "member" },
-      { userId: claire.id, teamId: lyonBasket.id, role: "admin" },
-      { userId: david.id, teamId: lyonBasket.id, role: "member" },
-      { userId: bob.id, teamId: lyonBasket.id, role: "member" },
-    ],
-  });
-
-  // ── Joueurs ──────────────────────────────────────────────
-  await prisma.player.createMany({
-    data: [
-      { firstName: "Karim", lastName: "Benzema", position: "Attaquant", email: "karim@example.com", teamId: fcParis.id },
-      { firstName: "Antoine", lastName: "Griezmann", position: "Milieu", email: "antoine@example.com", teamId: fcParis.id },
-      { firstName: "Hugo", lastName: "Lloris", position: "Gardien", teamId: fcParis.id },
-      { firstName: "Tony", lastName: "Parker", position: "Meneur", email: "tony@example.com", teamId: lyonBasket.id },
-      { firstName: "Rudy", lastName: "Gobert", position: "Pivot", teamId: lyonBasket.id },
-      { firstName: "Evan", lastName: "Fournier", position: "Arrière", email: "evan@example.com", teamId: lyonBasket.id },
+      { userId: alice.id, teamId: fcParis.id, role: "admin", position: "Entraîneur", phone: "06 10 00 00 01" },
+      { userId: bob.id, teamId: fcParis.id, role: "member", position: "Attaquant", phone: "06 10 00 00 02" },
+      { userId: claire.id, teamId: lyonBasket.id, role: "admin", position: "Entraîneur", phone: "06 10 00 00 03" },
+      { userId: david.id, teamId: lyonBasket.id, role: "member", position: "Meneur", phone: "06 10 00 00 04" },
+      { userId: bob.id, teamId: lyonBasket.id, role: "member", position: "Arrière", phone: "06 10 00 00 02" },
     ],
   });
 

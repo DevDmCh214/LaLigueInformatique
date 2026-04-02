@@ -9,7 +9,7 @@ export default async function TeamsPage() {
   const teams = await prisma.team.findMany({
     where: { members: { some: { userId } } },
     include: {
-      _count: { select: { players: true, events: true, members: true } },
+      _count: { select: { events: true, members: true } },
       members: { where: { userId }, select: { role: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -39,7 +39,6 @@ export default async function TeamsPage() {
               </div>
               {team.sport && <p className="text-sm text-gray-400 mb-2">{team.sport}</p>}
               <div className="flex gap-3 text-xs text-gray-500">
-                <span>{team._count.players} joueur(s)</span>
                 <span>{team._count.members} membre(s)</span>
                 <span>{team._count.events} événement(s)</span>
               </div>

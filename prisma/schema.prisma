@@ -1,5 +1,5 @@
 // Schéma Prisma — La Ligue Informatique
-// Base de données : PostgreSQL
+// Base de données : SQLite
 
 generator client {
   provider = "prisma-client-js"
@@ -29,36 +29,29 @@ model Team {
   sport     String?
   createdAt DateTime @default(now())
 
-  players Player[]
   members TeamMember[]
   events  Event[]
 }
 
-// ── Membre d'équipe (N,N : User ↔ Team) ─────────────────────
+// ── Membre d'équipe (N,N : User ↔ Team, porteuse de données) ─
+// Fusionne l'ancien Player + TeamMember :
+//   role     = rôle applicatif (admin / member)
+//   position = poste sportif (gardien, attaquant…)
+//   phone    = numéro de contact dans le contexte de l'équipe
 model TeamMember {
-  id     Int    @id @default(autoincrement())
-  role   String @default("member") // "admin" ou "member"
-  userId Int
-  teamId Int
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id       Int     @id @default(autoincrement())
+  role     String  @default("member") // "admin" ou "member"
+  position String? // poste sportif
+  phone    String? // numéro de contact
+  userId   Int
+  teamId   Int
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team     Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([userId, teamId])
 }
 
-// ── Joueur (1,N : Team → Player) ─────────────────────────────
-model Player {
-  id        Int     @id @default(autoincrement())
-  firstName String
-  lastName  String
-  position  String?
-  email     String?
-  phone     String?
-  teamId    Int
-  team      Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
-}
-
-// ── Événement ────────────────────────────────────────────────
+// ── Événement (1,N : Team → Event) ──────────────────────────
 model Event {
   id          Int      @id @default(autoincrement())
   title       String

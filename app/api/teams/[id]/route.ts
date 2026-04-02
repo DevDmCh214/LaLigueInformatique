@@ -16,10 +16,12 @@ export async function GET(
   const team = await prisma.team.findUnique({
     where: { id: Number(params.id) },
     include: {
-      players: true,
-      members: { include: { user: { select: { id: true, name: true, email: true } } } },
+      members: {
+        include: { user: { select: { id: true, name: true, email: true } } },
+        orderBy: { user: { name: "asc" } },
+      },
       events: { orderBy: { date: "asc" } },
-      _count: { select: { players: true, events: true } },
+      _count: { select: { members: true, events: true } },
     },
   });
 

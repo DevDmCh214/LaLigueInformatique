@@ -3,23 +3,22 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-interface Player {
+interface Member {
   id: number;
-  firstName: string;
-  lastName: string;
+  role: string;
   position: string | null;
-  email: string | null;
   phone: string | null;
+  user: { id: number; name: string; email: string };
 }
 
-export default function PlayerList({ players, isAdmin }: { players: Player[]; isAdmin: boolean }) {
+export default function PlayerList({ players: members, isAdmin }: { players: Member[]; isAdmin: boolean }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState<Partial<Player>>({});
+  const [editForm, setEditForm] = useState<{ role?: string; position?: string; phone?: string }>({});
 
-  function startEdit(player: Player) {
-    setEditingId(player.id);
-    setEditForm(player);
+  function startEdit(member: Member) {
+    setEditingId(member.id);
+    setEditForm({ role: member.role, position: member.position || "", phone: member.phone || "" });
   }
 
   async function saveEdit() {
@@ -33,14 +32,14 @@ export default function PlayerList({ players, isAdmin }: { players: Player[]; is
     router.refresh();
   }
 
-  async function deletePlayer(id: number) {
-    if (!confirm("Supprimer ce joueur ?")) return;
+  async function deleteMember(id: number) {
+    if (!confirm("Retirer ce membre de l'équipe ?")) return;
     await fetch(`/api/players/${id}`, { method: "DELETE" });
     router.refresh();
   }
 
-  if (players.length === 0) {
-    return <p className="text-gray-400 text-sm">Aucun joueur dans cette équipe.</p>;
+  if (members.length === 0) {
+    return <p className="text-gray-400 text-sm">Aucun membre dans cette équipe.</p>;
   }
 
   return (
@@ -49,41 +48,33 @@ export default function PlayerList({ players, isAdmin }: { players: Player[]; is
         <thead>
           <tr>
             <th>Nom</th>
-            <th>Poste</th>
             <th>Email</th>
+            <th>Rôle</th>
+            <th>Poste</th>
             <th>Téléphone</th>
             {isAdmin && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
-          {players.map((player) =>
-            editingId === player.id ? (
-              <tr key={player.id} className="bg-gray-50">
+          {members.map((member) =>
+            editingId === member.id ? (
+              <tr key={member.id} className="bg-gray-50">
+                <td className="font-medium text-gray-700">{member.user.name}</td>
+                <td className="text-gray-500">{member.user.email}</td>
                 <td>
-                  <div className="flex gap-1">
-                    <input
-                      value={editForm.firstName || ""}
-                      onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })}
-                      className="input text-xs w-20"
-                    />
-                    <input
-                      value={editForm.lastName || ""}
-                      onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })}
-                      className="input text-xs w-20"
-                    />
-                  </div>
+                  <select
+                    value={editForm.role || "member"}
+                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                    className="input text-xs"
+                  >
+                    <option value="member">Membre</option>
+                    <option value="admin">Admin</option>
+                  </select>
                 </td>
                 <td>
                   <input
                     value={editForm.position || ""}
                     onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
-                    className="input text-xs"
-                  />
-                </td>
-                <td>
-                  <input
-                    value={editForm.email || ""}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                     className="input text-xs"
                   />
                 </td>
@@ -102,19 +93,24 @@ export default function PlayerList({ players, isAdmin }: { players: Player[]; is
                 </td>
               </tr>
             ) : (
-              <tr key={player.id}>
-                <td className="font-medium text-gray-700">{player.firstName} {player.lastName}</td>
-                <td>{player.position || "—"}</td>
-                <td>{player.email || "—"}</td>
-                <td>{player.phone || "—"}</td>
+              <tr key={member.id}>
+                <td className="font-medium text-gray-700">{member.user.name}</td>
+                <td className="text-gray-500">{member.user.email}</td>
+                <td>
+                  <span className={member.role === "admin" ? "badge-blue" : "badge-green"}>
+                    {member.role === "admin" ? "Admin" : "Membre"}
+                  </span>
+                </td>
+                <td>{member.position || "—"}</td>
+                <td>{member.phone || "—"}</td>
                 {isAdmin && (
                   <td>
                     <div className="flex gap-2">
-                      <button onClick={() => startEdit(player)} className="text-gray-500 hover:text-gray-700 hover:underline text-xs">
+                      <button onClick={() => startEdit(member)} className="text-gray-500 hover:text-gray-700 hover:underline text-xs">
                         Modifier
                       </button>
-                      <button onClick={() => deletePlayer(player.id)} className="text-red-500 hover:text-red-700 hover:underline text-xs">
-                        Supprimer
+                      <button onClick={() => deleteMember(member.id)} className="text-red-500 hover:text-red-700 hover:underline text-xs">
+                        Retirer
                       </button>
                     </div>
                   </td>

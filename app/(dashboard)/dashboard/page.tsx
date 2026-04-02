@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   const [teams, upcomingEvents, rsvpCount] = await Promise.all([
     prisma.team.findMany({
       where: { members: { some: { userId } } },
-      include: { _count: { select: { players: true, events: true } } },
+      include: { _count: { select: { members: true, events: true } } },
     }),
     prisma.event.findMany({
       where: {
@@ -60,7 +60,7 @@ export default async function DashboardPage() {
                 <h3 className="font-semibold text-gray-700">{team.name}</h3>
                 {team.sport && <p className="text-sm text-gray-400">{team.sport}</p>}
                 <div className="flex gap-4 mt-2 text-xs text-gray-500">
-                  <span>{team._count.players} joueur(s)</span>
+                  <span>{team._count.members} membre(s)</span>
                   <span>{team._count.events} événement(s)</span>
                 </div>
               </Link>
