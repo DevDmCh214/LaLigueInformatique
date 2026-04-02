@@ -16,7 +16,8 @@
       "WebFetch(domain:api.github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(npx tsx:*)",
-      "Bash(start \"\" \"c:\\\\LaLigueInformatique\\\\docs\\\\mcd.html\")"
+      "Bash(start \"\" \"c:\\\\LaLigueInformatique\\\\docs\\\\mcd.html\")",
+      "Bash(start \"\" \"c:\\\\LaLigueInformatique\\\\docs\\\\cas_utilisation.html\")"
     ],
     "additionalDirectories": [
       "C:\\LaLigueInformatique\\.claude",
