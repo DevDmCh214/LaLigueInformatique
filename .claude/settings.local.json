@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git clone:*)",
+      "Bash(cp -r temp_clone/.git .)",
+      "Bash(cp temp_clone/.gitignore .)",
+      "Bash(cp temp_clone/LICENSE .)",
+      "Bash(rm -rf temp_clone)",
+      "Bash(rm -rf temp_clone/.git)",
+      "Bash(mkdir -p prisma app/\\\\\\(auth\\\\\\)/login app/\\\\\\(auth\\\\\\)/signup app/\\\\\\(dashboard\\\\\\)/dashboard app/\\\\\\(dashboard\\\\\\)/teams/\\\\[id\\\\] app/\\\\\\(dashboard\\\\\\)/teams/new app/\\\\\\(dashboard\\\\\\)/players/\\\\[id\\\\] app/\\\\\\(dashboard\\\\\\)/events/\\\\[id\\\\] app/\\\\\\(dashboard\\\\\\)/events/new app/\\\\\\(dashboard\\\\\\)/calendar app/api/auth/\\\\[...nextauth\\\\] app/api/teams app/api/players app/api/events app/api/rsvp lib/auth components/ui components/features public)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx next:*)",
+      "Bash(ls -la .env*)",
+      "Bash(npm run:*)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ],
+    "additionalDirectories": [
+      "C:\\LaLigueInformatique\\.claude",
+      "C:\\LaLigueInformatique\\public"
+    ]
+  }
+}

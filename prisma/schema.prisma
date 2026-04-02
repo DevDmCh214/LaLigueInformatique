@@ -1,0 +1,86 @@
+// Schéma Prisma — La Ligue Informatique
+// Base de données : PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Utilisateur ──────────────────────────────────────────────
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // hash bcrypt
+  name      String
+  createdAt DateTime @default(now())
+
+  teamMembers TeamMember[]
+  rsvps       RSVP[]
+}
+
+// ── Équipe ───────────────────────────────────────────────────
+model Team {
+  id        Int      @id @default(autoincrement())
+  name      String
+  sport     String?
+  createdAt DateTime @default(now())
+
+  players Player[]
+  members TeamMember[]
+  events  Event[]
+}
+
+// ── Membre d'équipe (N,N : User ↔ Team) ─────────────────────
+model TeamMember {
+  id     Int    @id @default(autoincrement())
+  role   String @default("member") // "admin" ou "member"
+  userId Int
+  teamId Int
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+}
+
+// ── Joueur (1,N : Team → Player) ─────────────────────────────
+model Player {
+  id        Int     @id @default(autoincrement())
+  firstName String
+  lastName  String
+  position  String?
+  email     String?
+  phone     String?
+  teamId    Int
+  team      Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+}
+
+// ── Événement ────────────────────────────────────────────────
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  type        String   // "game" ou "practice"
+  date        DateTime
+  location    String?
+  opponent    String?
+  description String?
+  teamId      Int
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  rsvps RSVP[]
+}
+
+// ── RSVP (N,N : User ↔ Event, porteuse de données) ──────────
+model RSVP {
+  id      Int    @id @default(autoincrement())
+  status  String // "going", "not_going", "maybe"
+  userId  Int
+  eventId Int
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+}
