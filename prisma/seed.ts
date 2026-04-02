@@ -4,110 +4,212 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Insertion des données de démonstration...");
+  console.log("Insertion des donnees de demonstration...");
 
-  // ── Utilisateurs ─────────────────────────────────────────
+  // ── Nettoyage (suppression + reset auto-increment SQLite) ──
+  await prisma.equipeParticipante.deleteMany();
+  await prisma.reponse.deleteMany();
+  await prisma.match.deleteMany();
+  await prisma.evenement.deleteMany();
+  await prisma.sportInscription.deleteMany();
+  await prisma.appartenir.deleteMany();
+  await prisma.equipe.deleteMany();
+  await prisma.sport.deleteMany();
+  await prisma.utilisateur.deleteMany();
+
+  // Reset auto-increment counters (SQLite)
+  await prisma.$executeRawUnsafe(`DELETE FROM sqlite_sequence`);
+
+
+  // ── Sports ──────────────────────────────────────────────────
+  const football = await prisma.sport.create({ data: { nom: "Football" } });
+  const basketball = await prisma.sport.create({ data: { nom: "Basketball" } });
+  const volleyball = await prisma.sport.create({ data: { nom: "Volleyball" } });
+  const tennis = await prisma.sport.create({ data: { nom: "Tennis" } });
+
+  // ── Utilisateurs ────────────────────────────────────────────
   const hash = await bcrypt.hash("Password1!", 10);
 
-  const alice = await prisma.user.create({
-    data: { email: "alice@example.com", password: hash, name: "Alice Dupont" },
+  const alice = await prisma.utilisateur.create({
+    data: { nom: "Dupont", prenom: "Alice", email: "alice@example.com", mdp: hash, role: "admin" },
   });
-  const bob = await prisma.user.create({
-    data: { email: "bob@example.com", password: hash, name: "Bob Martin" },
+  const bob = await prisma.utilisateur.create({
+    data: { nom: "Martin", prenom: "Bob", email: "bob@example.com", mdp: hash, role: "admin" },
   });
-  const claire = await prisma.user.create({
-    data: { email: "claire@example.com", password: hash, name: "Claire Petit" },
+  const claire = await prisma.utilisateur.create({
+    data: { nom: "Petit", prenom: "Claire", email: "claire@example.com", mdp: hash, role: "admin" },
   });
-  const david = await prisma.user.create({
-    data: { email: "david@example.com", password: hash, name: "David Leroy" },
+  const david = await prisma.utilisateur.create({
+    data: { nom: "Leroy", prenom: "David", email: "david@example.com", mdp: hash, role: "utilisateur" },
   });
-
-  // ── Équipes ──────────────────────────────────────────────
-  const fcParis = await prisma.team.create({
-    data: { name: "FC Paris", sport: "Football" },
+  const emma = await prisma.utilisateur.create({
+    data: { nom: "Bernard", prenom: "Emma", email: "emma@example.com", mdp: hash, role: "utilisateur" },
   });
-  const lyonBasket = await prisma.team.create({
-    data: { name: "Lyon Basket", sport: "Basketball" },
+  const francois = await prisma.utilisateur.create({
+    data: { nom: "Moreau", prenom: "Francois", email: "francois@example.com", mdp: hash, role: "utilisateur" },
   });
 
-  // ── Membres d'équipe (fusion ancien Player + TeamMember) ─
-  await prisma.teamMember.createMany({
+  // ── Inscriptions aux sports (listeSportsInscript) ───────────
+  await prisma.sportInscription.createMany({
     data: [
-      { userId: alice.id, teamId: fcParis.id, role: "admin", position: "Entraîneur", phone: "06 10 00 00 01" },
-      { userId: bob.id, teamId: fcParis.id, role: "member", position: "Attaquant", phone: "06 10 00 00 02" },
-      { userId: claire.id, teamId: lyonBasket.id, role: "admin", position: "Entraîneur", phone: "06 10 00 00 03" },
-      { userId: david.id, teamId: lyonBasket.id, role: "member", position: "Meneur", phone: "06 10 00 00 04" },
-      { userId: bob.id, teamId: lyonBasket.id, role: "member", position: "Arrière", phone: "06 10 00 00 02" },
+      { utilisateurId: alice.id, sportId: football.id },
+      { utilisateurId: alice.id, sportId: basketball.id },
+      { utilisateurId: bob.id, sportId: football.id },
+      { utilisateurId: bob.id, sportId: volleyball.id },
+      { utilisateurId: claire.id, sportId: basketball.id },
+      { utilisateurId: claire.id, sportId: tennis.id },
+      { utilisateurId: david.id, sportId: football.id },
+      { utilisateurId: david.id, sportId: basketball.id },
+      { utilisateurId: emma.id, sportId: volleyball.id },
+      { utilisateurId: emma.id, sportId: tennis.id },
+      { utilisateurId: francois.id, sportId: football.id },
+      { utilisateurId: francois.id, sportId: basketball.id },
     ],
   });
 
-  // ── Événements ───────────────────────────────────────────
+  // ── Equipes ─────────────────────────────────────────────────
+  const fcParis = await prisma.equipe.create({
+    data: { nom: "FC Paris", nombrePlaces: 11 },
+  });
+  const lyonBasket = await prisma.equipe.create({
+    data: { nom: "Lyon Basket", nombrePlaces: 5 },
+  });
+  const marseilleVolley = await prisma.equipe.create({
+    data: { nom: "Marseille Volley", nombrePlaces: 6 },
+  });
+  const niceFC = await prisma.equipe.create({
+    data: { nom: "OGC Nice", nombrePlaces: 11 },
+  });
+
+  // ── Appartenir (Utilisateur <-> Equipe) ─────────────────────
+  await prisma.appartenir.createMany({
+    data: [
+      { utilisateurId: alice.id, equipeId: fcParis.id },
+      { utilisateurId: bob.id, equipeId: fcParis.id },
+      { utilisateurId: david.id, equipeId: fcParis.id },
+      { utilisateurId: francois.id, equipeId: fcParis.id },
+      { utilisateurId: claire.id, equipeId: lyonBasket.id },
+      { utilisateurId: david.id, equipeId: lyonBasket.id },
+      { utilisateurId: bob.id, equipeId: lyonBasket.id },
+      { utilisateurId: emma.id, equipeId: marseilleVolley.id },
+      { utilisateurId: bob.id, equipeId: marseilleVolley.id },
+      { utilisateurId: francois.id, equipeId: niceFC.id },
+      { utilisateurId: emma.id, equipeId: niceFC.id },
+    ],
+  });
+
+  // ── Evenements (non-matchs) ─────────────────────────────────
   const now = new Date();
-  const event1 = await prisma.event.create({
+
+  const entrainement1 = await prisma.evenement.create({
     data: {
-      title: "Match contre Marseille",
-      type: "game",
-      date: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 15, 0),
-      location: "Stade de France",
-      opponent: "Olympique de Marseille",
-      teamId: fcParis.id,
-    },
-  });
-  const event2 = await prisma.event.create({
-    data: {
-      title: "Entraînement collectif",
-      type: "practice",
-      date: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3, 18, 0),
-      location: "Centre sportif Dugommier",
-      teamId: fcParis.id,
-    },
-  });
-  const event3 = await prisma.event.create({
-    data: {
-      title: "Match contre Villeurbanne",
-      type: "game",
-      date: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 10, 20, 0),
-      location: "Palais des Sports",
-      opponent: "ASVEL Villeurbanne",
-      teamId: lyonBasket.id,
-    },
-  });
-  const event4 = await prisma.event.create({
-    data: {
-      title: "Entraînement tirs",
-      type: "practice",
-      date: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 17, 0),
-      location: "Gymnase Jean Jaurès",
-      teamId: lyonBasket.id,
-    },
-  });
-  await prisma.event.create({
-    data: {
-      title: "Match amical contre Bordeaux",
-      type: "game",
-      date: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14, 16, 0),
-      location: "Stade Chaban-Delmas",
-      opponent: "Girondins de Bordeaux",
-      teamId: fcParis.id,
+      entitule: "Entrainement collectif",
+      participants: 15,
+      dateHeure: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3, 18, 0),
+      description: "Seance de preparation physique et tactique",
+      sportId: football.id,
     },
   });
 
-  // ── RSVPs ────────────────────────────────────────────────
-  await prisma.rSVP.createMany({
+  const entrainement2 = await prisma.evenement.create({
+    data: {
+      entitule: "Entrainement tirs",
+      participants: 10,
+      dateHeure: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 17, 0),
+      description: "Travail des tirs a trois points",
+      sportId: basketball.id,
+    },
+  });
+
+  const tournoi = await prisma.evenement.create({
+    data: {
+      entitule: "Tournoi amical de volley",
+      participants: 24,
+      dateHeure: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 15, 9, 0),
+      description: "Tournoi inter-clubs sur la journee",
+      sportId: volleyball.id,
+    },
+  });
+
+  // ── Evenements qui sont des Matchs ──────────────────────────
+  const evMatch1 = await prisma.evenement.create({
+    data: {
+      entitule: "FC Paris vs OGC Nice",
+      participants: 22,
+      dateHeure: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 15, 0),
+      description: "Match de championnat - Journee 12",
+      sportId: football.id,
+    },
+  });
+  const match1 = await prisma.match.create({
+    data: { evenementId: evMatch1.id },
+  });
+  await prisma.equipeParticipante.createMany({
     data: [
-      { userId: alice.id, eventId: event1.id, status: "going" },
-      { userId: bob.id, eventId: event1.id, status: "going" },
-      { userId: alice.id, eventId: event2.id, status: "maybe" },
-      { userId: bob.id, eventId: event2.id, status: "going" },
-      { userId: claire.id, eventId: event3.id, status: "going" },
-      { userId: david.id, eventId: event3.id, status: "not_going" },
-      { userId: bob.id, eventId: event3.id, status: "maybe" },
-      { userId: claire.id, eventId: event4.id, status: "going" },
-      { userId: david.id, eventId: event4.id, status: "going" },
+      { matchId: match1.id, equipeId: fcParis.id },
+      { matchId: match1.id, equipeId: niceFC.id },
     ],
   });
 
-  console.log("✅ Données de démonstration insérées avec succès !");
+  const evMatch2 = await prisma.evenement.create({
+    data: {
+      entitule: "Lyon Basket vs Marseille Volley",
+      participants: 12,
+      dateHeure: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 10, 20, 0),
+      description: "Match amical inter-sports",
+      sportId: basketball.id,
+    },
+  });
+  const match2 = await prisma.match.create({
+    data: { evenementId: evMatch2.id },
+  });
+  await prisma.equipeParticipante.createMany({
+    data: [
+      { matchId: match2.id, equipeId: lyonBasket.id },
+      { matchId: match2.id, equipeId: marseilleVolley.id },
+    ],
+  });
+
+  // Un match deja joue avec un gagnant
+  const evMatch3 = await prisma.evenement.create({
+    data: {
+      entitule: "FC Paris vs Lyon Basket",
+      participants: 16,
+      dateHeure: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 3, 16, 0),
+      description: "Match retour",
+      sportId: football.id,
+    },
+  });
+  const match3 = await prisma.match.create({
+    data: { evenementId: evMatch3.id, equipeGagnanteId: fcParis.id },
+  });
+  await prisma.equipeParticipante.createMany({
+    data: [
+      { matchId: match3.id, equipeId: fcParis.id },
+      { matchId: match3.id, equipeId: lyonBasket.id },
+    ],
+  });
+
+  // ── Reponses (doit repondre) ────────────────────────────────
+  await prisma.reponse.createMany({
+    data: [
+      { utilisateurId: alice.id, evenementId: entrainement1.id, reponse: "present" },
+      { utilisateurId: bob.id, evenementId: entrainement1.id, reponse: "present" },
+      { utilisateurId: david.id, evenementId: entrainement1.id, reponse: "absent" },
+      { utilisateurId: claire.id, evenementId: entrainement2.id, reponse: "present" },
+      { utilisateurId: david.id, evenementId: entrainement2.id, reponse: "peut-etre" },
+      { utilisateurId: alice.id, evenementId: evMatch1.id, reponse: "present" },
+      { utilisateurId: bob.id, evenementId: evMatch1.id, reponse: "present" },
+      { utilisateurId: francois.id, evenementId: evMatch1.id, reponse: "present" },
+      { utilisateurId: claire.id, evenementId: evMatch2.id, reponse: "present" },
+      { utilisateurId: david.id, evenementId: evMatch2.id, reponse: "absent" },
+      { utilisateurId: emma.id, evenementId: tournoi.id, reponse: "present" },
+      { utilisateurId: bob.id, evenementId: tournoi.id, reponse: "peut-etre" },
+    ],
+  });
+
+  console.log("Donnees de demonstration inserees avec succes !");
+  console.log("Comptes de test : alice@example.com / bob@example.com / ... (mdp: Password1!)");
 }
 
 main()

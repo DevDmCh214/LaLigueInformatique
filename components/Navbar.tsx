@@ -6,8 +6,10 @@ import { usePathname } from "next/navigation";
 
 const navLinks = [
   { href: "/dashboard", label: "Tableau de bord" },
-  { href: "/teams", label: "Équipes" },
-  { href: "/events", label: "Événements" },
+  { href: "/sports", label: "Sports" },
+  { href: "/equipes", label: "Equipes" },
+  { href: "/evenements", label: "Evenements" },
+  { href: "/matchs", label: "Matchs" },
   { href: "/calendar", label: "Calendrier" },
 ];
 
@@ -49,12 +51,14 @@ export default function Navbar() {
 
           {/* Right: user */}
           <div className="flex items-center gap-4">
-            <span className="text-sm text-white/80">{session.user?.name}</span>
+            <Link href="/profil" className="text-sm text-white/80 hover:text-white transition-colors">
+              {session.user?.name}
+            </Link>
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="text-sm text-white/90 hover:text-white hover:bg-white/15 px-2 py-1 rounded transition-colors"
             >
-              Déconnexion
+              Deconnexion
             </button>
           </div>
         </div>
