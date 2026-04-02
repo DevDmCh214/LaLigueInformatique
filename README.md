@@ -54,7 +54,7 @@ Team ──1,N──> Event
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/VOTRE-USERNAME/LaLigueInformatique.git
+git clone https://github.com/DevDmCh214/LaLigueInformatique.git
 cd LaLigueInformatique
 ```
 
