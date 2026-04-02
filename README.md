@@ -155,10 +155,3 @@ LaLigueInformatique/
 | `npm run db:seed` | Insérer les données de démo |
 | `npm run db:studio` | Ouvrir Prisma Studio (interface BDD) |
 
-## Captures d'écran
-
-> *À ajouter : captures de l'interface (connexion, tableau de bord, équipe avec joueurs, événement avec RSVP, calendrier)*
-
-## Licence
-
-MIT
