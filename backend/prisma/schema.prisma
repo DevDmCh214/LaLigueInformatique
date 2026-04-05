@@ -1,0 +1,120 @@
+// Schema Prisma — La Ligue Informatique
+// Conforme au MCD : Utilisateur, Sport, Equipe, Evenement, Match (heritage XT)
+// Base de donnees : SQLite
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// -- Utilisateur --
+model Utilisateur {
+  id     Int    @id @default(autoincrement())
+  nom    String
+  prenom String
+  email  String @unique
+  mdp    String // hash bcrypt
+  role   String @default("utilisateur") // "admin" | "utilisateur"
+
+  reponses       Reponse[]
+  appartenances  Appartenir[]
+  sportsInscrits SportInscription[]
+}
+
+// -- Sport --
+model Sport {
+  id  Int    @id @default(autoincrement())
+  nom String @unique
+
+  evenements   Evenement[]
+  inscriptions SportInscription[]
+}
+
+// -- Equipe --
+model Equipe {
+  id           Int    @id @default(autoincrement())
+  nom          String
+  nombrePlaces Int
+
+  membres        Appartenir[]
+  participations EquipeParticipante[]
+  matchsGagnes   Match[]              @relation("EquipeGagnante")
+}
+
+// -- Evenement (classe parente) --
+model Evenement {
+  id           Int      @id @default(autoincrement())
+  participants Int
+  entitule     String
+  dateHeure    DateTime
+  description  String?
+  sportId      Int
+
+  sport    Sport     @relation(fields: [sportId], references: [id])
+  reponses Reponse[]
+  match    Match?
+}
+
+// -- Match (herite de Evenement — XT) --
+model Match {
+  id               Int  @id @default(autoincrement())
+  evenementId      Int  @unique
+  equipeGagnanteId Int?
+
+  evenement            Evenement            @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  equipeGagnante       Equipe?              @relation("EquipeGagnante", fields: [equipeGagnanteId], references: [id])
+  equipesParticipantes EquipeParticipante[]
+}
+
+// -- Reponse (N,N : Utilisateur <-> Evenement) --
+model Reponse {
+  id            Int    @id @default(autoincrement())
+  reponse       String // "present" | "absent" | "peut-etre"
+  utilisateurId Int
+  evenementId   Int
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  evenement   Evenement   @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+
+  @@unique([utilisateurId, evenementId])
+}
+
+// -- Appartenir (N,N : Utilisateur <-> Equipe) --
+model Appartenir {
+  id            Int @id @default(autoincrement())
+  utilisateurId Int
+  equipeId      Int
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  equipe      Equipe      @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+
+  @@unique([utilisateurId, equipeId])
+}
+
+// -- EquipeParticipante (N,N : Match <-> Equipe, card. 2,2) --
+model EquipeParticipante {
+  id       Int @id @default(autoincrement())
+  matchId  Int
+  equipeId Int
+
+  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  equipe Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, equipeId])
+}
+
+// -- SportInscription (N,N : Utilisateur <-> Sport) --
+model SportInscription {
+  id            Int @id @default(autoincrement())
+  utilisateurId Int
+  sportId       Int
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  sport       Sport       @relation(fields: [sportId], references: [id], onDelete: Cascade)
+
+  @@unique([utilisateurId, sportId])
+}

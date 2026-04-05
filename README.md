@@ -2,9 +2,29 @@
 
 Application web de gestion sportive developpee dans le cadre du **BTS SIO SLAM** (epreuve E6). Elle permet de gerer des sports, des equipes, des evenements, des matchs (avec heritage XT) et les reponses de presence des membres.
 
+## Architecture
+
+Le projet est separe en deux parties independantes :
+
+- **Backend** : API REST NestJS + Prisma + SQLite
+- **Frontend** : SPA React (Vite) + Tailwind CSS
+
+```
+laLigueInformatique/
+├── backend/           ← API NestJS (port 3000)
+│   ├── src/           ← Modules NestJS
+│   ├── prisma/        ← Schema + migrations + seed
+│   ├── database.sqlite ← auto-cree
+│   └── package.json
+├── frontend/          ← SPA React (port 5173)
+│   ├── src/           ← Pages + composants
+│   └── package.json
+└── README.md
+```
+
 ## Fonctionnalites
 
-- **Inscription / Connexion** securisee (bcrypt + JWT via NextAuth)
+- **Inscription / Connexion** securisee (bcrypt + JWT)
 - **Gestion des sports** : CRUD complet, inscription/desinscription des utilisateurs
 - **Gestion des equipes** : creation avec nombre de places, ajout/retrait de membres (controle de capacite)
 - **Gestion des evenements** : creation liee a un sport, systeme de reponses (present/absent/peut-etre)
@@ -48,66 +68,21 @@ Application web de gestion sportive developpee dans le cadre du **BTS SIO SLAM**
 | UC22 | Definir le gagnant d'un match | Designer l'equipe gagnante parmi les participantes (etre gagnant) |
 | UC23 | Supprimer un evenement/match | Supprimer un evenement (cascade sur reponses et match) |
 
-## Modele Conceptuel de Donnees (MCD)
-
-```
-Utilisateur ──0,n── doit repondre (reponse) ──0,n── Evenement
-Utilisateur ──0,n── appartenir ──0,n── Equipe
-Utilisateur ──1,n── listeSportsInscript ──1,n── Sport
-Evenement ──1,1── doit avoir un seul ──0,n── Sport
-Evenement ──XT (heritage)── Match
-Match ──2,2── EquipesParticipantes ──0,n── Equipe
-Match ──1,n── etre gagnant ──0,n── Equipe
-```
-
-### Entites
-
-| Entite | Attributs |
-|--------|-----------|
-| **Utilisateur** | id, nom, prenom, email, mdp, role |
-| **Sport** | id, nom |
-| **Equipe** | id, nom, nombrePlaces |
-| **Evenement** | id, participants, entitule, dateHeure, description |
-| **Match** | (herite d'Evenement via XT) equipeGagnanteId |
-
-### Relations
-
-| Relation | Type | Cardinalites | Attribut(s) |
-|----------|------|-------------|-------------|
-| doit repondre | N,N porteuse | Utilisateur 0,n — Evenement 0,n | reponse (present/absent/peut-etre) |
-| appartenir | N,N | Utilisateur 0,n — Equipe 0,n | — |
-| listeSportsInscript | N,N | Utilisateur 1,n — Sport 1,n | — |
-| doit avoir un seul | 1,N | Evenement 1,1 — Sport 0,n | — |
-| EquipesParticipantes | N,N | Match 2,2 — Equipe 0,n | — |
-| etre gagnant | N,N | Match 0,1 — Equipe 0,n | — |
-| Heritage | Specialisation | Evenement → Match | Total, Exclusif |
-
-### Schema relationnel (Prisma)
-
-```
-Utilisateur (id, nom, prenom, email, mdp, role)
-Sport (id, nom)
-Equipe (id, nom, nombrePlaces)
-Evenement (id, participants, entitule, dateHeure, description, #sportId)
-Match (id, #evenementId UNIQUE, #equipeGagnanteId?)
-Reponse (id, reponse, #utilisateurId, #evenementId) UNIQUE(utilisateurId, evenementId)
-Appartenir (id, #utilisateurId, #equipeId) UNIQUE(utilisateurId, equipeId)
-EquipeParticipante (id, #matchId, #equipeId) UNIQUE(matchId, equipeId)
-SportInscription (id, #utilisateurId, #sportId) UNIQUE(utilisateurId, sportId)
-```
-
 ## Stack technique
 
 | Technologie | Role |
 |-------------|------|
-| **Next.js 14** | Framework React full-stack (App Router) |
+| **NestJS 10** | Framework backend (API REST) |
+| **React 18** | Frontend SPA |
+| **Vite** | Build tool frontend |
 | **TypeScript** | Typage statique |
 | **SQLite** | Base de donnees relationnelle (fichier local) |
 | **Prisma** | ORM (migrations, requetes, seed) |
-| **NextAuth.js** | Authentification (credentials + JWT) |
+| **Passport + JWT** | Authentification |
 | **bcryptjs** | Hachage des mots de passe |
-| **Zod** | Validation des donnees |
+| **class-validator** | Validation des donnees (backend) |
 | **Tailwind CSS** | Styling utilitaire |
+| **React Router** | Navigation frontend |
 
 ## Prerequis
 
@@ -123,47 +98,39 @@ git clone https://github.com/DevDmCh214/LaLigueInformatique.git
 cd LaLigueInformatique
 ```
 
-### 2. Installer les dependances
+### 2. Installer le backend
 
 ```bash
+cd backend
 npm install
-```
-
-### 3. Configurer l'environnement
-
-```bash
-cp .env.example .env
-```
-
-Le fichier `.env` est pre-configure pour SQLite. Remplacer le secret NextAuth :
-
-```env
-DATABASE_URL="file:./dev.db"
-NEXTAUTH_SECRET="votre-secret-genere"
-NEXTAUTH_URL="http://localhost:3000"
-```
-
-> Pour generer un secret : `openssl rand -base64 32`
-
-### 4. Creer la base de donnees et appliquer les migrations
-
-```bash
 npx prisma migrate dev --name init
-```
-
-### 5. Inserer les donnees de demonstration
-
-```bash
 npm run db:seed
 ```
 
-### 6. Lancer l'application
+### 3. Installer le frontend
 
 ```bash
+cd ../frontend
+npm install
+```
+
+### 4. Lancer l'application
+
+Ouvrir **deux terminaux** :
+
+**Terminal 1 — Backend (port 3000) :**
+```bash
+cd backend
+npm run start:dev
+```
+
+**Terminal 2 — Frontend (port 5173) :**
+```bash
+cd frontend
 npm run dev
 ```
 
-Ouvrir [http://localhost:3000](http://localhost:3000) dans le navigateur.
+Ouvrir [http://localhost:5173](http://localhost:5173) dans le navigateur.
 
 ## Identifiants de demonstration
 
@@ -178,70 +145,57 @@ Tous les comptes ont le mot de passe : `Password1!`
 | emma@example.com | Emma Bernard | utilisateur | Marseille Volley, OGC Nice | Volleyball, Tennis |
 | francois@example.com | Francois Moreau | utilisateur | FC Paris, OGC Nice | Football, Basketball |
 
-## Structure du projet
-
-```
-LaLigueInformatique/
-├── app/
-│   ├── (auth)/                # Pages d'authentification
-│   │   ├── login/             # Connexion
-│   │   └── signup/            # Inscription (nom, prenom, email, mdp)
-│   ├── (dashboard)/           # Pages protegees (authentifie)
-│   │   ├── dashboard/         # Tableau de bord
-│   │   ├── sports/            # Gestion des sports
-│   │   │   ├── [id]/          # Detail + inscrits + evenements
-│   │   │   └── new/           # Creer un sport
-│   │   ├── equipes/           # Gestion des equipes
-│   │   │   ├── [id]/          # Detail + membres + matchs
-│   │   │   └── new/           # Creer une equipe
-│   │   ├── evenements/        # Gestion des evenements
-│   │   │   ├── [id]/          # Detail + reponses
-│   │   │   └── new/           # Creer un evenement
-│   │   ├── matchs/            # Gestion des matchs (heritage XT)
-│   │   │   ├── [id]/          # Detail + equipes + gagnant + reponses
-│   │   │   └── new/           # Creer un match (2 equipes)
-│   │   ├── calendar/          # Calendrier
-│   │   └── profil/            # Profil + inscriptions sports
-│   └── api/                   # Routes API REST
-│       ├── auth/              # Authentification (NextAuth + inscription)
-│       ├── sports/            # CRUD sports
-│       ├── equipes/           # CRUD equipes + membres
-│       ├── evenements/        # CRUD evenements
-│       ├── matchs/            # CRUD matchs (heritage XT d'evenement)
-│       ├── reponses/          # Reponses aux evenements (upsert)
-│       └── inscriptions/      # Inscriptions aux sports (toggle)
-├── components/                # Composants React reutilisables
-├── lib/                       # Utilitaires (Prisma, auth, validation Zod)
-├── prisma/
-│   ├── schema.prisma          # Schema de la base de donnees (MCD → MLD)
-│   └── seed.ts                # Donnees de demonstration
-├── types/                     # Declarations TypeScript (NextAuth)
-└── middleware.ts              # Protection des routes (authentification)
-```
-
 ## Routes API
+
+Toutes les routes sont prefixees par `/api` et protegees par JWT (sauf signup et login).
 
 | Methode | Route | Description |
 |---------|-------|-------------|
-| POST | `/api/auth/signup` | Inscription (nom, prenom, email, mdp) |
+| POST | `/api/auth/signup` | Inscription |
+| POST | `/api/auth/login` | Connexion (retourne JWT) |
+| GET | `/api/auth/me` | Profil utilisateur courant |
+| GET | `/api/dashboard` | Stats du tableau de bord |
 | GET/POST | `/api/sports` | Lister / Creer un sport |
-| GET/PUT/DELETE | `/api/sports/[id]` | Detail / Modifier / Supprimer un sport |
+| GET/PUT/DELETE | `/api/sports/:id` | Detail / Modifier / Supprimer |
 | GET/POST | `/api/equipes` | Lister / Creer une equipe |
-| GET/PUT/DELETE | `/api/equipes/[id]` | Detail / Modifier / Supprimer une equipe |
-| POST/DELETE | `/api/equipes/[id]/membres` | Ajouter / Retirer un membre |
+| GET/PUT/DELETE | `/api/equipes/:id` | Detail / Modifier / Supprimer |
+| POST/DELETE | `/api/equipes/:id/membres` | Ajouter / Retirer un membre |
 | GET/POST | `/api/evenements` | Lister / Creer un evenement |
-| GET/PUT/DELETE | `/api/evenements/[id]` | Detail / Modifier / Supprimer |
-| GET/POST | `/api/matchs` | Lister / Creer un match (+ evenement parent XT) |
-| GET/PUT/DELETE | `/api/matchs/[id]` | Detail / Definir gagnant / Supprimer |
+| GET/PUT/DELETE | `/api/evenements/:id` | Detail / Modifier / Supprimer |
+| GET/POST | `/api/matchs` | Lister / Creer un match (heritage XT) |
+| GET/PUT/DELETE | `/api/matchs/:id` | Detail / Definir gagnant / Supprimer |
 | POST | `/api/reponses` | Repondre a un evenement (upsert) |
-| GET/POST/DELETE | `/api/inscriptions` | Lister / S'inscrire / Se desinscrire d'un sport |
+| GET/POST/DELETE | `/api/inscriptions` | Inscriptions aux sports |
+
+## Modele Conceptuel de Donnees (MCD)
+
+```
+Utilisateur --0,n-- doit repondre (reponse) --0,n-- Evenement
+Utilisateur --0,n-- appartenir --0,n-- Equipe
+Utilisateur --1,n-- listeSportsInscript --1,n-- Sport
+Evenement --1,1-- concerne --0,n-- Sport
+Evenement --XT (heritage)-- Match
+Match --2,2-- participants --0,n-- Equipe
+Match --0,1-- gagner --0,1-- Equipe
+Equipe --1,1-- pratiquer --0,n-- Sport
+```
 
 ## Commandes utiles
 
+### Backend
+
 | Commande | Description |
 |----------|-------------|
-| `npm run dev` | Lancer le serveur de developpement |
+| `npm run start:dev` | Lancer le serveur en mode developpement |
 | `npm run build` | Compiler pour la production |
 | `npm run db:migrate` | Appliquer les migrations Prisma |
 | `npm run db:seed` | Inserer les donnees de demo |
-| `npm run db:studio` | Ouvrir Prisma Studio (interface BDD) |
+| `npm run db:studio` | Ouvrir Prisma Studio |
+
+### Frontend
+
+| Commande | Description |
+|----------|-------------|
+| `npm run dev` | Lancer le serveur Vite |
+| `npm run build` | Compiler pour la production |
+| `npm run preview` | Preview de la build de production |

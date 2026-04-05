@@ -21,7 +21,11 @@
       "Bash(rm -f prisma/dev.db)",
       "Bash(rm -rf prisma/migrations)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/login)",
-      "Bash(bash smoke-test.sh)"
+      "Bash(bash smoke-test.sh)",
+      "Bash(find /c/LaLigueInformatique -maxdepth 1 -type f \\\\\\( -name \"next.config.*\" -o -name \"tsconfig.json\" \\\\\\) -exec head -50 {} +)",
+      "Bash(npx nest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)"
     ],
     "additionalDirectories": [
       "C:\\LaLigueInformatique\\.claude",
