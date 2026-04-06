@@ -89,12 +89,12 @@ export default function MatchDetailPage() {
             </div>
           ))}
         </div>
-        {isAdmin && (() => {
+        {isAdmin && !match.equipeGagnanteId && (() => {
           const canSetWinner = presents.length >= ev.participants;
           return (
             <div className="border-t border-gray-200 pt-4">
               <p className="text-sm text-gray-500 mb-2">Definir le gagnant :</p>
-              {!canSetWinner && !match.equipeGagnanteId && (
+              {!canSetWinner && (
                 <p className="text-xs text-yellow-600 mb-2">
                   En attente: {presents.length}/{ev.participants} participants presents
                 </p>
@@ -104,21 +104,12 @@ export default function MatchDetailPage() {
                   <button
                     key={eq.id}
                     onClick={() => setWinner(eq.id)}
-                    disabled={actionLoading || (!canSetWinner && !match.equipeGagnanteId)}
-                    className={`btn ${
-                      match.equipeGagnanteId === eq.id
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                    } ${!canSetWinner && !match.equipeGagnanteId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={actionLoading || !canSetWinner}
+                    className={`btn bg-gray-200 text-gray-600 hover:bg-gray-300 ${!canSetWinner ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {eq.nom}
                   </button>
                 ))}
-                {match.equipeGagnanteId && (
-                  <button onClick={() => setWinner(null)} disabled={actionLoading} className="btn-secondary">
-                    Retirer
-                  </button>
-                )}
               </div>
             </div>
           );

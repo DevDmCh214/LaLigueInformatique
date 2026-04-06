@@ -104,6 +104,16 @@ export class MatchsService {
   }
 
   async setWinner(id: number, equipeGagnanteId: number | null) {
+    const existingMatch = await this.prisma.match.findUnique({
+      where: { id },
+      include: { evenement: { select: { id: true, participants: true } } },
+    });
+    if (!existingMatch) throw new NotFoundException('Match non trouve');
+
+    if (existingMatch.equipeGagnanteId) {
+      throw new BadRequestException('Le resultat de ce match est deja defini et ne peut plus etre modifie');
+    }
+
     if (equipeGagnanteId !== null && equipeGagnanteId !== undefined) {
       const participation = await this.prisma.equipeParticipante.findFirst({
         where: { matchId: id, equipeId: equipeGagnanteId },
@@ -112,20 +122,13 @@ export class MatchsService {
         throw new BadRequestException("L'equipe gagnante doit participer au match");
       }
 
-      // Check that nb present == nb participants
-      const match = await this.prisma.match.findUnique({
-        where: { id },
-        include: { evenement: { select: { id: true, participants: true } } },
+      const presentCount = await this.prisma.reponse.count({
+        where: { evenementId: existingMatch.evenement.id, reponse: 'present' },
       });
-      if (match) {
-        const presentCount = await this.prisma.reponse.count({
-          where: { evenementId: match.evenement.id, reponse: 'present' },
-        });
-        if (presentCount < match.evenement.participants) {
-          throw new BadRequestException(
-            `Impossible de definir le gagnant: ${presentCount}/${match.evenement.participants} participants presents`,
-          );
-        }
+      if (presentCount < existingMatch.evenement.participants) {
+        throw new BadRequestException(
+          `Impossible de definir le gagnant: ${presentCount}/${existingMatch.evenement.participants} participants presents`,
+        );
       }
     }
 

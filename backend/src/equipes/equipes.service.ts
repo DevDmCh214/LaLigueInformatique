@@ -72,6 +72,18 @@ export class EquipesService {
 
   async remove(id: number) {
     const old = await this.prisma.equipe.findUnique({ where: { id } });
+    if (!old) throw new NotFoundException('Equipe non trouvee');
+
+    // Delete all matches this team participates in (via their parent evenement for cascade)
+    const participations = await this.prisma.equipeParticipante.findMany({
+      where: { equipeId: id },
+      select: { match: { select: { evenementId: true } } },
+    });
+    const evenementIds = participations.map((p) => p.match.evenementId);
+    if (evenementIds.length > 0) {
+      await this.prisma.evenement.deleteMany({ where: { id: { in: evenementIds } } });
+    }
+
     await this.prisma.equipe.delete({ where: { id } });
     await this.auditService.log({ tableName: 'Equipe', action: 'DELETE', recordId: String(id), oldState: old });
     return { message: 'Equipe supprimee' };

@@ -17,9 +17,8 @@ export default function MatchsListPage() {
   const sportIds = new Set(subscribedSportIds);
   const filtered = matchs.filter((m) => sportIds.has(m.evenement.sportId));
 
-  const now = new Date();
-  const futurs = filtered.filter((m) => new Date(m.evenement.dateHeure) >= now);
-  const passes = filtered.filter((m) => new Date(m.evenement.dateHeure) < now);
+  const futurs = filtered.filter((m) => !m.equipeGagnante);
+  const passes = filtered.filter((m) => m.equipeGagnante);
 
   return (
     <div>
