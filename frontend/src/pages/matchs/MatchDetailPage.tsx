@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
@@ -11,6 +11,7 @@ const reponseOptions = [
 
 export default function MatchDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const [match, setMatch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -31,6 +32,10 @@ export default function MatchDetailPage() {
   const absents = ev.reponses.filter((r: any) => r.reponse === 'absent');
   const peutEtre = ev.reponses.filter((r: any) => r.reponse === 'peut-etre');
   const equipes = match.equipesParticipantes.map((ep: any) => ep.equipe);
+  const allTeamMemberIds = new Set(
+    match.equipesParticipantes.flatMap((ep: any) => ep.equipe.membres?.map((m: any) => m.utilisateurId) || [])
+  );
+  const isInTeam = user?.id ? allTeamMemberIds.has(user.id) : false;
 
   async function handleReponse(reponse: string) {
     setActionLoading(true);
@@ -50,9 +55,25 @@ export default function MatchDetailPage() {
     <div>
       <Link to="/matchs" className="text-sm text-gray-400 hover:text-gray-600">&larr; Retour</Link>
 
-      <div className="mt-2 mb-5">
-        <h1 className="text-xl font-semibold text-gray-700">{ev.entitule}</h1>
-        <p className="text-sm text-gray-400">{ev.sport.nom} — Match</p>
+      <div className="flex justify-between items-start mt-2 mb-5">
+        <div>
+          <h1 className="text-xl font-semibold text-gray-700">{ev.entitule}</h1>
+          <p className="text-sm text-gray-400">{ev.sport.nom} — Match</p>
+        </div>
+        {isAdmin && (
+          <button
+            onClick={async () => {
+              if (!confirm('Supprimer ce match ?')) return;
+              setActionLoading(true);
+              await api.del(`/matchs/${id}`);
+              navigate('/matchs');
+            }}
+            disabled={actionLoading}
+            className="btn-danger"
+          >
+            {actionLoading ? '...' : 'Supprimer'}
+          </button>
+        )}
       </div>
 
       <div className="card mb-6">
@@ -68,32 +89,40 @@ export default function MatchDetailPage() {
             </div>
           ))}
         </div>
-        {isAdmin && (
-          <div className="border-t border-gray-200 pt-4">
-            <p className="text-sm text-gray-500 mb-2">Definir le gagnant :</p>
-            <div className="flex gap-2 flex-wrap">
-              {equipes.map((eq: any) => (
-                <button
-                  key={eq.id}
-                  onClick={() => setWinner(eq.id)}
-                  disabled={actionLoading}
-                  className={`btn ${
-                    match.equipeGagnanteId === eq.id
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                  }`}
-                >
-                  {eq.nom}
-                </button>
-              ))}
-              {match.equipeGagnanteId && (
-                <button onClick={() => setWinner(null)} disabled={actionLoading} className="btn-secondary">
-                  Retirer
-                </button>
+        {isAdmin && (() => {
+          const canSetWinner = presents.length >= ev.participants;
+          return (
+            <div className="border-t border-gray-200 pt-4">
+              <p className="text-sm text-gray-500 mb-2">Definir le gagnant :</p>
+              {!canSetWinner && !match.equipeGagnanteId && (
+                <p className="text-xs text-yellow-600 mb-2">
+                  En attente: {presents.length}/{ev.participants} participants presents
+                </p>
               )}
+              <div className="flex gap-2 flex-wrap">
+                {equipes.map((eq: any) => (
+                  <button
+                    key={eq.id}
+                    onClick={() => setWinner(eq.id)}
+                    disabled={actionLoading || (!canSetWinner && !match.equipeGagnanteId)}
+                    className={`btn ${
+                      match.equipeGagnanteId === eq.id
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    } ${!canSetWinner && !match.equipeGagnanteId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {eq.nom}
+                  </button>
+                ))}
+                {match.equipeGagnanteId && (
+                  <button onClick={() => setWinner(null)} disabled={actionLoading} className="btn-secondary">
+                    Retirer
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -129,23 +158,34 @@ export default function MatchDetailPage() {
           </div>
         </div>
 
-        <div className="card h-fit">
-          <div className="card-header">Ma reponse</div>
-          <div className="space-y-2">
-            {reponseOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => handleReponse(opt.value)}
-                disabled={actionLoading}
-                className={`w-full px-4 py-2 rounded text-sm font-medium transition-colors ${opt.className} ${
-                  maReponse === opt.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-70'
-                }`}
-              >
-                {maReponse === opt.value && '* '}{opt.label}
-              </button>
-            ))}
+        {isInTeam && (
+          <div className="card h-fit">
+            <div className="card-header">Ma reponse</div>
+            <div className="space-y-2">
+              {reponseOptions.map((opt) => {
+                const isFull = opt.value === 'present' && maReponse !== 'present' && presents.length >= ev.participants;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => handleReponse(opt.value)}
+                    disabled={actionLoading || isFull}
+                    className={`w-full px-4 py-2 rounded text-sm font-medium transition-colors ${opt.className} ${
+                      maReponse === opt.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-70'
+                    } ${isFull ? 'opacity-40 cursor-not-allowed' : ''}`}
+                  >
+                    {maReponse === opt.value && '* '}{opt.label}{isFull ? ' (complet)' : ''}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => navigate(-1)}
+              className="w-full mt-3 px-4 py-2 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+            >
+              OK
+            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

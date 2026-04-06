@@ -108,19 +108,28 @@ export default function EvenementDetailPage() {
         <div className="card h-fit">
           <div className="card-header">Ma reponse</div>
           <div className="space-y-2">
-            {reponseOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => handleReponse(opt.value)}
-                disabled={actionLoading}
-                className={`w-full px-4 py-2 rounded text-sm font-medium transition-colors ${opt.className} ${
-                  maReponse === opt.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-70'
-                }`}
-              >
-                {maReponse === opt.value && '* '}{opt.label}
-              </button>
-            ))}
+            {reponseOptions.map((opt) => {
+              const isFull = opt.value === 'present' && maReponse !== 'present' && presents.length >= evenement.participants;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => handleReponse(opt.value)}
+                  disabled={actionLoading || isFull}
+                  className={`w-full px-4 py-2 rounded text-sm font-medium transition-colors ${opt.className} ${
+                    maReponse === opt.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-70'
+                  } ${isFull ? 'opacity-40 cursor-not-allowed' : ''}`}
+                >
+                  {maReponse === opt.value && '* '}{opt.label}{isFull ? ' (complet)' : ''}
+                </button>
+              );
+            })}
           </div>
+          <button
+            onClick={() => navigate(-1)}
+            className="w-full mt-3 px-4 py-2 rounded text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+          >
+            OK
+          </button>
         </div>
       </div>
     </div>

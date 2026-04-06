@@ -30,9 +30,13 @@ export default function ProfilPage() {
   async function toggleSport(sportId: number, isInscrit: boolean) {
     setActionLoading(sportId);
     await api[isInscrit ? 'del' : 'post']('/inscriptions', { sportId });
-    // Refetch profile to update subscription state
-    const updatedProfile = await api.get<any>('/auth/me');
+    // Refetch both profile and sports to update all state
+    const [updatedProfile, updatedSports] = await Promise.all([
+      api.get<any>('/auth/me'),
+      api.get<any[]>('/sports'),
+    ]);
     setProfile(updatedProfile);
+    setAllSports(updatedSports);
     // Keep AuthContext in sync so subscribedSportIds updates across the app
     await refreshProfile();
     setActionLoading(null);

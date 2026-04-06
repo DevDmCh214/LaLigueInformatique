@@ -25,6 +25,20 @@ export class InscriptionsService {
   }
 
   async unsubscribe(utilisateurId: number, sportId: number) {
+    // Remove user from all teams of this sport
+    const teamsOfSport = await this.prisma.equipe.findMany({
+      where: { sportId },
+      select: { id: true },
+    });
+    if (teamsOfSport.length > 0) {
+      await this.prisma.appartenir.deleteMany({
+        where: {
+          utilisateurId,
+          equipeId: { in: teamsOfSport.map((t) => t.id) },
+        },
+      });
+    }
+
     await this.prisma.sportInscription.delete({
       where: { utilisateurId_sportId: { utilisateurId, sportId } },
     });

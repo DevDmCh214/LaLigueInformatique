@@ -23,6 +23,49 @@ model Utilisateur {
   reponses       Reponse[]
   appartenances  Appartenir[]
   sportsInscrits SportInscription[]
+  sessions       Session[]
+  connexions     Connexion[]
+}
+
+// -- Session --
+model Session {
+  id            String   @id @default(uuid())
+  utilisateurId Int
+  ipAddress     String?
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+  isActive      Boolean  @default(true)
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@index([utilisateurId])
+  @@index([expiresAt])
+}
+
+// -- Connexion (log des tentatives de login) --
+model Connexion {
+  id            Int      @id @default(autoincrement())
+  ipAddress     String
+  utilisateurId Int?
+  attemptedAt   DateTime @default(now())
+  success       Boolean  @default(false)
+
+  utilisateur Utilisateur? @relation(fields: [utilisateurId], references: [id], onDelete: SetNull)
+
+  @@index([ipAddress, attemptedAt])
+  @@index([utilisateurId])
+}
+
+// -- AuditLog (journal de modifications) --
+model AuditLog {
+  id            Int      @id @default(autoincrement())
+  createdAt     DateTime @default(now())
+  utilisateurId Int?
+  tableName     String
+  action        String   // "INSERT" | "UPDATE" | "DELETE"
+  recordId      String
+  oldState      String?  // JSON
+  newState      String?  // JSON
 }
 
 // -- Sport --
@@ -30,6 +73,7 @@ model Sport {
   id  Int    @id @default(autoincrement())
   nom String @unique
 
+  equipes      Equipe[]
   evenements   Evenement[]
   inscriptions SportInscription[]
 }
@@ -39,7 +83,9 @@ model Equipe {
   id           Int    @id @default(autoincrement())
   nom          String
   nombrePlaces Int
+  sportId      Int
 
+  sport          Sport                @relation(fields: [sportId], references: [id], onDelete: Cascade)
   membres        Appartenir[]
   participations EquipeParticipante[]
   matchsGagnes   Match[]              @relation("EquipeGagnante")
@@ -54,7 +100,7 @@ model Evenement {
   description  String?
   sportId      Int
 
-  sport    Sport     @relation(fields: [sportId], references: [id])
+  sport    Sport     @relation(fields: [sportId], references: [id], onDelete: Cascade)
   reponses Reponse[]
   match    Match?
 }
@@ -66,7 +112,7 @@ model Match {
   equipeGagnanteId Int?
 
   evenement            Evenement            @relation(fields: [evenementId], references: [id], onDelete: Cascade)
-  equipeGagnante       Equipe?              @relation("EquipeGagnante", fields: [equipeGagnanteId], references: [id])
+  equipeGagnante       Equipe?              @relation("EquipeGagnante", fields: [equipeGagnanteId], references: [id], onDelete: SetNull)
   equipesParticipantes EquipeParticipante[]
 }
 

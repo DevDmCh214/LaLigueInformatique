@@ -34,6 +34,13 @@ export default function MatchNewPage() {
   // Filter teams by selected sport
   const filteredEquipes = allEquipes.filter((eq) => eq.sportId === form.sportId);
 
+  // Calculate max participants based on the smaller team
+  const equipe1 = allEquipes.find((eq) => eq.id === form.equipe1Id);
+  const equipe2 = allEquipes.find((eq) => eq.id === form.equipe2Id);
+  const maxParticipants = equipe1 && equipe2
+    ? Math.min(equipe1.nombrePlaces, equipe2.nombrePlaces) * 2
+    : undefined;
+
   function handleSportChange(sportId: number) {
     const sportEquipes = allEquipes.filter((eq) => eq.sportId === sportId);
     setForm((f) => ({
@@ -50,6 +57,14 @@ export default function MatchNewPage() {
 
     if (form.equipe1Id === form.equipe2Id) {
       setError('Les deux equipes doivent etre differentes');
+      return;
+    }
+    if (form.participants % 2 !== 0) {
+      setError('Le nombre de participants doit etre pair');
+      return;
+    }
+    if (maxParticipants && form.participants > maxParticipants) {
+      setError(`Le nombre de participants ne peut pas depasser ${maxParticipants}`);
       return;
     }
 
@@ -103,8 +118,9 @@ export default function MatchNewPage() {
               <input type="datetime-local" value={form.dateHeure} onChange={(e) => setForm({ ...form, dateHeure: e.target.value })} required className="input" />
             </div>
             <div>
-              <label className="block text-sm text-gray-500 mb-1">Nb participants</label>
-              <input type="number" value={form.participants} onChange={(e) => setForm({ ...form, participants: Number(e.target.value) })} min={1} required className="input" />
+              <label className="block text-sm text-gray-500 mb-1">Nb participants (pair)</label>
+              <input type="number" value={form.participants} onChange={(e) => setForm({ ...form, participants: Number(e.target.value) })} min={2} step={2} max={maxParticipants} required className="input" />
+              {maxParticipants && <p className="text-xs text-gray-400 mt-1">Max: {maxParticipants}</p>}
             </div>
           </div>
           <div>

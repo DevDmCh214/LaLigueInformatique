@@ -39,6 +39,16 @@ export class EquipesController {
     return this.equipesService.remove(id);
   }
 
+  @Post(':id/join')
+  join(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.equipesService.joinEquipe(id, req.user.userId);
+  }
+
+  @Delete(':id/leave')
+  leave(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.equipesService.leaveEquipe(id, req.user.userId);
+  }
+
   @Post(':id/membres')
   @Roles('admin')
   addMembre(@Param('id', ParseIntPipe) id: number, @Body() dto: AddMembreDto) {

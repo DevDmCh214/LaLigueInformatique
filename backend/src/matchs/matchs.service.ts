@@ -33,7 +33,12 @@ export class MatchsService {
         },
         equipesParticipantes: {
           include: {
-            equipe: { select: { id: true, nom: true, nombrePlaces: true } },
+            equipe: {
+              select: {
+                id: true, nom: true, nombrePlaces: true,
+                membres: { select: { utilisateurId: true } },
+              },
+            },
           },
         },
         equipeGagnante: { select: { id: true, nom: true } },
@@ -46,6 +51,25 @@ export class MatchsService {
   async create(dto: CreateMatchDto) {
     if (dto.equipe1Id === dto.equipe2Id) {
       throw new BadRequestException('Les deux equipes doivent etre differentes');
+    }
+
+    if (dto.participants % 2 !== 0) {
+      throw new BadRequestException('Le nombre de participants doit etre pair');
+    }
+
+    // Validate nb participants <= min team size * 2
+    const [equipe1, equipe2] = await Promise.all([
+      this.prisma.equipe.findUnique({ where: { id: dto.equipe1Id }, select: { nombrePlaces: true } }),
+      this.prisma.equipe.findUnique({ where: { id: dto.equipe2Id }, select: { nombrePlaces: true } }),
+    ]);
+    if (!equipe1 || !equipe2) {
+      throw new BadRequestException('Equipe non trouvee');
+    }
+    const minTeamSize = Math.min(equipe1.nombrePlaces, equipe2.nombrePlaces);
+    if (dto.participants / 2 > minTeamSize) {
+      throw new BadRequestException(
+        `Le nombre de participants par equipe (${dto.participants / 2}) ne peut pas depasser la taille de la plus petite equipe (${minTeamSize})`,
+      );
     }
 
     return this.prisma.evenement.create({
@@ -86,6 +110,22 @@ export class MatchsService {
       });
       if (!participation) {
         throw new BadRequestException("L'equipe gagnante doit participer au match");
+      }
+
+      // Check that nb present == nb participants
+      const match = await this.prisma.match.findUnique({
+        where: { id },
+        include: { evenement: { select: { id: true, participants: true } } },
+      });
+      if (match) {
+        const presentCount = await this.prisma.reponse.count({
+          where: { evenementId: match.evenement.id, reponse: 'present' },
+        });
+        if (presentCount < match.evenement.participants) {
+          throw new BadRequestException(
+            `Impossible de definir le gagnant: ${presentCount}/${match.evenement.participants} participants presents`,
+          );
+        }
       }
     }
 

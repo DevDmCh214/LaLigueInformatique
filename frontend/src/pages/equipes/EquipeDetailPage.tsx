@@ -52,10 +52,30 @@ export default function EquipeDetailPage() {
     setActionLoading(false);
   }
 
+  async function handleJoin() {
+    setActionLoading(true);
+    try {
+      await api.post(`/equipes/${id}/join`);
+      fetchData();
+    } catch (err: any) {
+      alert(err.message || 'Erreur');
+    }
+    setActionLoading(false);
+  }
+
+  async function handleLeave() {
+    if (!confirm('Quitter cette equipe ?')) return;
+    setActionLoading(true);
+    await api.del(`/equipes/${id}/leave`);
+    fetchData();
+    setActionLoading(false);
+  }
+
   if (loading) return <p className="text-gray-400">Chargement...</p>;
   if (!equipe) return <p className="text-gray-400">Equipe non trouvee.</p>;
 
   const placesRestantes = equipe.nombrePlaces - equipe.membres.length;
+  const isMembre = equipe.membres.some((m: any) => m.utilisateurId === user?.id);
 
   return (
     <div>
@@ -68,11 +88,23 @@ export default function EquipeDetailPage() {
             {placesRestantes > 0 ? ` (${placesRestantes} place(s) restante(s))` : ' (complet)'}
           </p>
         </div>
-        {isAdmin && (
-          <button onClick={handleDelete} disabled={actionLoading} className="btn-danger">
-            {actionLoading ? '...' : 'Supprimer'}
-          </button>
-        )}
+        <div className="flex gap-2">
+          {!isAdmin && !isMembre && placesRestantes > 0 && (
+            <button onClick={handleJoin} disabled={actionLoading} className="btn-primary">
+              {actionLoading ? '...' : 'Rejoindre'}
+            </button>
+          )}
+          {!isAdmin && isMembre && (
+            <button onClick={handleLeave} disabled={actionLoading} className="btn-secondary">
+              {actionLoading ? '...' : 'Quitter'}
+            </button>
+          )}
+          {isAdmin && (
+            <button onClick={handleDelete} disabled={actionLoading} className="btn-danger">
+              {actionLoading ? '...' : 'Supprimer'}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

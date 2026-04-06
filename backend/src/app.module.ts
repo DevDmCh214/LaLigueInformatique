@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { SessionModule } from './session/session.module';
+import { AuditModule } from './audit/audit.module';
 import { SportsModule } from './sports/sports.module';
 import { EquipesModule } from './equipes/equipes.module';
 import { EvenementsModule } from './evenements/evenements.module';
@@ -12,6 +14,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
 @Module({
   imports: [
     PrismaModule,
+    SessionModule,
+    AuditModule,
     AuthModule,
     SportsModule,
     EquipesModule,

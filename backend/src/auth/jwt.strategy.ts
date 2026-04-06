@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { SessionService } from '../session/session.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private sessionService: SessionService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -12,7 +13,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { sub: number; email: string; role: string }) {
-    return { userId: payload.sub, email: payload.email, role: payload.role };
+  async validate(payload: { sub: number; email: string; role: string; sessionId?: string }) {
+    // Validate server-side session if present
+    if (payload.sessionId) {
+      const valid = await this.sessionService.validateSession(payload.sessionId);
+      if (!valid) {
+        throw new UnauthorizedException('Session expiree ou invalide');
+      }
+    }
+
+    return { userId: payload.sub, email: payload.email, role: payload.role, sessionId: payload.sessionId };
   }
 }
