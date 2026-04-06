@@ -25,7 +25,9 @@
       "Bash(find /c/LaLigueInformatique -maxdepth 1 -type f \\\\\\( -name \"next.config.*\" -o -name \"tsconfig.json\" \\\\\\) -exec head -50 {} +)",
       "Bash(npx nest:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(xargs grep:*)",
+      "Bash(xargs head:*)"
     ],
     "additionalDirectories": [
       "C:\\LaLigueInformatique\\.claude",

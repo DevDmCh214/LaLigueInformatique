@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 export default function SportDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [sport, setSport] = useState<any>(null);
   const [isInscrit, setIsInscrit] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -50,9 +50,11 @@ export default function SportDetailPage() {
           <button onClick={toggleInscription} disabled={actionLoading} className={isInscrit ? 'btn-secondary' : 'btn-primary'}>
             {actionLoading ? '...' : isInscrit ? 'Se desinscrire' : "S'inscrire"}
           </button>
-          <button onClick={handleDelete} disabled={actionLoading} className="btn-danger">
-            Supprimer
-          </button>
+          {isAdmin && (
+            <button onClick={handleDelete} disabled={actionLoading} className="btn-danger">
+              Supprimer
+            </button>
+          )}
         </div>
       </div>
 

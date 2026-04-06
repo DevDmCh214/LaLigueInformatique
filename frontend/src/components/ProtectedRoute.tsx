@@ -1,8 +1,9 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import SportSelectionModal from './SportSelectionModal';
 
 export default function ProtectedRoute() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, hasSports, loading, refreshProfile } = useAuth();
 
   if (loading) {
     return (
@@ -14,6 +15,10 @@ export default function ProtectedRoute() {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!hasSports) {
+    return <SportSelectionModal onComplete={refreshProfile} />;
   }
 
   return <Outlet />;

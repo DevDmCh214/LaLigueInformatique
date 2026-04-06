@@ -2,8 +2,10 @@ import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards, Requ
 import { EvenementsService } from './evenements.service';
 import { CreateEvenementDto } from './dto/evenement.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('evenements')
 export class EvenementsController {
   constructor(private evenementsService: EvenementsService) {}
@@ -22,16 +24,19 @@ export class EvenementsController {
   }
 
   @Post()
+  @Roles('admin')
   create(@Body() dto: CreateEvenementDto) {
     return this.evenementsService.create(dto);
   }
 
   @Put(':id')
+  @Roles('admin')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateEvenementDto) {
     return this.evenementsService.update(id, dto);
   }
 
   @Delete(':id')
+  @Roles('admin')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.evenementsService.remove(id);
   }

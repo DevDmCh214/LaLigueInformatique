@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 export default function CalendarPage() {
+  const { subscribedSportIds } = useAuth();
   const [evenements, setEvenements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,9 +16,12 @@ export default function CalendarPage() {
 
   if (loading) return <p className="text-gray-400">Chargement...</p>;
 
+  const sportIds = new Set(subscribedSportIds);
+  const filtered = evenements.filter((e) => sportIds.has(e.sportId));
+
   // Group by month
   const grouped: Record<string, any[]> = {};
-  for (const ev of evenements) {
+  for (const ev of filtered) {
     const key = new Date(ev.dateHeure).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(ev);
@@ -26,10 +31,9 @@ export default function CalendarPage() {
     <div>
       <h1 className="text-xl font-semibold text-gray-700 mb-5">Calendrier</h1>
 
-      {evenements.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="card text-center py-10">
-          <p className="text-gray-400 mb-4">Aucun evenement a venir.</p>
-          <Link to="/evenements/new" className="btn-primary">Creer un evenement</Link>
+          <p className="text-gray-400 mb-4">Aucun evenement a venir pour vos sports.</p>
         </div>
       ) : (
         <div className="space-y-6">

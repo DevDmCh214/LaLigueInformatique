@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import Layout from './components/Layout';
 
 import LoginPage from './pages/auth/LoginPage';
@@ -35,19 +36,23 @@ export default function App() {
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/sports" element={<SportsListPage />} />
-              <Route path="/sports/new" element={<SportNewPage />} />
               <Route path="/sports/:id" element={<SportDetailPage />} />
               <Route path="/equipes" element={<EquipesListPage />} />
-              <Route path="/equipes/new" element={<EquipeNewPage />} />
               <Route path="/equipes/:id" element={<EquipeDetailPage />} />
               <Route path="/evenements" element={<EvenementsListPage />} />
-              <Route path="/evenements/new" element={<EvenementNewPage />} />
               <Route path="/evenements/:id" element={<EvenementDetailPage />} />
               <Route path="/matchs" element={<MatchsListPage />} />
-              <Route path="/matchs/new" element={<MatchNewPage />} />
               <Route path="/matchs/:id" element={<MatchDetailPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/profil" element={<ProfilPage />} />
+
+              {/* Admin-only routes */}
+              <Route element={<AdminRoute />}>
+                <Route path="/sports/new" element={<SportNewPage />} />
+                <Route path="/equipes/new" element={<EquipeNewPage />} />
+                <Route path="/evenements/new" element={<EvenementNewPage />} />
+                <Route path="/matchs/new" element={<MatchNewPage />} />
+              </Route>
             </Route>
           </Route>
 

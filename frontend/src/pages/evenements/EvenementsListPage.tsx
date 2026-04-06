@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 export default function EvenementsListPage() {
+  const { isAdmin, subscribedSportIds } = useAuth();
   const [evenements, setEvenements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,18 +14,23 @@ export default function EvenementsListPage() {
 
   if (loading) return <p className="text-gray-400">Chargement...</p>;
 
+  const sportIds = new Set(subscribedSportIds);
+  const filtered = evenements.filter((e) => sportIds.has(e.sportId));
+
   const now = new Date();
-  const futurs = evenements.filter((e) => new Date(e.dateHeure) >= now);
-  const passes = evenements.filter((e) => new Date(e.dateHeure) < now);
+  const futurs = filtered.filter((e) => new Date(e.dateHeure) >= now);
+  const passes = filtered.filter((e) => new Date(e.dateHeure) < now);
 
   return (
     <div>
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-xl font-semibold text-gray-700">Evenements</h1>
-        <div className="flex gap-2">
-          <Link to="/evenements/new" className="btn-primary text-xs">+ Evenement</Link>
-          <Link to="/matchs/new" className="btn-primary text-xs">+ Match</Link>
-        </div>
+        {isAdmin && (
+          <div className="flex gap-2">
+            <Link to="/evenements/new" className="btn-primary text-xs">+ Evenement</Link>
+            <Link to="/matchs/new" className="btn-primary text-xs">+ Match</Link>
+          </div>
+        )}
       </div>
 
       <h2 className="text-base font-semibold text-gray-600 mb-3">A venir ({futurs.length})</h2>

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 export default function MatchsListPage() {
+  const { isAdmin, subscribedSportIds } = useAuth();
   const [matchs, setMatchs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,15 +14,20 @@ export default function MatchsListPage() {
 
   if (loading) return <p className="text-gray-400">Chargement...</p>;
 
+  const sportIds = new Set(subscribedSportIds);
+  const filtered = matchs.filter((m) => sportIds.has(m.evenement.sportId));
+
   const now = new Date();
-  const futurs = matchs.filter((m) => new Date(m.evenement.dateHeure) >= now);
-  const passes = matchs.filter((m) => new Date(m.evenement.dateHeure) < now);
+  const futurs = filtered.filter((m) => new Date(m.evenement.dateHeure) >= now);
+  const passes = filtered.filter((m) => new Date(m.evenement.dateHeure) < now);
 
   return (
     <div>
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-xl font-semibold text-gray-700">Matchs</h1>
-        <Link to="/matchs/new" className="btn-primary text-xs">+ Nouveau match</Link>
+        {isAdmin && (
+          <Link to="/matchs/new" className="btn-primary text-xs">+ Nouveau match</Link>
+        )}
       </div>
 
       <h2 className="text-base font-semibold text-gray-600 mb-3">A venir ({futurs.length})</h2>

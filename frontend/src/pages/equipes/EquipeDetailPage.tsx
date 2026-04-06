@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 export default function EquipeDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [equipe, setEquipe] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -64,13 +64,15 @@ export default function EquipeDetailPage() {
         <div>
           <h1 className="text-xl font-semibold text-gray-700">{equipe.nom}</h1>
           <p className="text-sm text-gray-400">
-            {equipe.membres.length}/{equipe.nombrePlaces} membres
+            {equipe.sport?.nom} — {equipe.membres.length}/{equipe.nombrePlaces} membres
             {placesRestantes > 0 ? ` (${placesRestantes} place(s) restante(s))` : ' (complet)'}
           </p>
         </div>
-        <button onClick={handleDelete} disabled={actionLoading} className="btn-danger">
-          {actionLoading ? '...' : 'Supprimer'}
-        </button>
+        {isAdmin && (
+          <button onClick={handleDelete} disabled={actionLoading} className="btn-danger">
+            {actionLoading ? '...' : 'Supprimer'}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -81,7 +83,7 @@ export default function EquipeDetailPage() {
               <p className="text-gray-400 text-sm">Aucun membre.</p>
             ) : (
               <table>
-                <thead><tr><th>Nom</th><th>Email</th><th></th></tr></thead>
+                <thead><tr><th>Nom</th><th>Email</th>{isAdmin && <th></th>}</tr></thead>
                 <tbody>
                   {equipe.membres.map((m: any) => (
                     <tr key={m.id}>
@@ -90,22 +92,24 @@ export default function EquipeDetailPage() {
                         {m.utilisateurId === user?.id && <span className="text-xs text-gray-400 ml-1">(vous)</span>}
                       </td>
                       <td>{m.utilisateur.email}</td>
-                      <td className="text-right">
-                        <button
-                          onClick={() => handleRemoveMembre(m.utilisateurId)}
-                          disabled={actionLoading}
-                          className="text-red-500 hover:text-red-700 text-xs"
-                        >
-                          Retirer
-                        </button>
-                      </td>
+                      {isAdmin && (
+                        <td className="text-right">
+                          <button
+                            onClick={() => handleRemoveMembre(m.utilisateurId)}
+                            disabled={actionLoading}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                          >
+                            Retirer
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
 
-            {placesRestantes > 0 && (
+            {isAdmin && placesRestantes > 0 && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 {!showAddForm ? (
                   <button onClick={() => setShowAddForm(true)} className="btn-secondary text-xs">

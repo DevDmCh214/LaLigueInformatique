@@ -7,6 +7,7 @@ type User = {
   prenom: string;
   email: string;
   role: string;
+  sportsInscrits?: { sportId: number; sport: { id: number; nom: string } }[];
 };
 
 type AuthContextType = {
@@ -14,8 +15,11 @@ type AuthContextType = {
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshProfile: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  hasSports: boolean;
+  subscribedSportIds: number[];
   loading: boolean;
 };
 
@@ -26,17 +30,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
+  const fetchProfile = async () => {
+    try {
+      const profile = await api.get<User>('/auth/me');
+      setUser(profile);
+    } catch {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     if (token) {
-      api.get<User>('/auth/me')
-        .then(setUser)
-        .catch(() => {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setToken(null);
-          setUser(null);
-        })
-        .finally(() => setLoading(false));
+      fetchProfile().finally(() => setLoading(false));
     } else {
       setLoading(false);
     }
@@ -49,7 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     localStorage.setItem('token', data.access_token);
     setToken(data.access_token);
-    setUser(data.user);
+    // Fetch full profile (with sportsInscrits)
+    const profile = await api.get<User>('/auth/me');
+    setUser(profile);
   };
 
   const logout = () => {
@@ -59,6 +69,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const refreshProfile = async () => {
+    await fetchProfile();
+  };
+
+  const subscribedSportIds = user?.sportsInscrits?.map((s) => s.sportId) ?? [];
+
   return (
     <AuthContext.Provider
       value={{
@@ -66,8 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         login,
         logout,
+        refreshProfile,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
+        hasSports: subscribedSportIds.length > 0,
+        subscribedSportIds,
         loading,
       }}
     >

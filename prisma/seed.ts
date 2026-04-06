@@ -69,16 +69,16 @@ async function main() {
 
   // ── Equipes ─────────────────────────────────────────────────
   const fcParis = await prisma.equipe.create({
-    data: { nom: "FC Paris", nombrePlaces: 11 },
+    data: { nom: "FC Paris", nombrePlaces: 11, sportId: football.id },
   });
   const lyonBasket = await prisma.equipe.create({
-    data: { nom: "Lyon Basket", nombrePlaces: 5 },
+    data: { nom: "Lyon Basket", nombrePlaces: 5, sportId: basketball.id },
   });
   const marseilleVolley = await prisma.equipe.create({
-    data: { nom: "Marseille Volley", nombrePlaces: 6 },
+    data: { nom: "Marseille Volley", nombrePlaces: 6, sportId: volleyball.id },
   });
   const niceFC = await prisma.equipe.create({
-    data: { nom: "OGC Nice", nombrePlaces: 11 },
+    data: { nom: "OGC Nice", nombrePlaces: 11, sportId: football.id },
   });
 
   // ── Appartenir (Utilisateur <-> Equipe) ─────────────────────

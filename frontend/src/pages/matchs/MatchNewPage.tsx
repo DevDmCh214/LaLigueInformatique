@@ -5,7 +5,7 @@ import { api } from '../../api/client';
 export default function MatchNewPage() {
   const navigate = useNavigate();
   const [sports, setSports] = useState<{ id: number; nom: string }[]>([]);
-  const [equipes, setEquipes] = useState<{ id: number; nom: string }[]>([]);
+  const [allEquipes, setAllEquipes] = useState<any[]>([]);
   const [form, setForm] = useState({
     entitule: '', participants: 22, dateHeure: '', description: '',
     sportId: 0, equipe1Id: 0, equipe2Id: 0,
@@ -19,15 +19,30 @@ export default function MatchNewPage() {
       api.get<any[]>('/equipes'),
     ]).then(([sportsData, equipesData]) => {
       setSports(sportsData);
-      setEquipes(equipesData);
+      setAllEquipes(equipesData);
+      const firstSportId = sportsData[0]?.id || 0;
+      const sportEquipes = equipesData.filter((eq) => eq.sportId === firstSportId);
       setForm((f) => ({
         ...f,
-        sportId: sportsData[0]?.id || 0,
-        equipe1Id: equipesData[0]?.id || 0,
-        equipe2Id: equipesData[1]?.id || 0,
+        sportId: firstSportId,
+        equipe1Id: sportEquipes[0]?.id || 0,
+        equipe2Id: sportEquipes[1]?.id || 0,
       }));
     });
   }, []);
+
+  // Filter teams by selected sport
+  const filteredEquipes = allEquipes.filter((eq) => eq.sportId === form.sportId);
+
+  function handleSportChange(sportId: number) {
+    const sportEquipes = allEquipes.filter((eq) => eq.sportId === sportId);
+    setForm((f) => ({
+      ...f,
+      sportId,
+      equipe1Id: sportEquipes[0]?.id || 0,
+      equipe2Id: sportEquipes[1]?.id || 0,
+    }));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,7 +74,7 @@ export default function MatchNewPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-gray-500 mb-1">Sport</label>
-            <select value={form.sportId} onChange={(e) => setForm({ ...form, sportId: Number(e.target.value) })} required className="input">
+            <select value={form.sportId} onChange={(e) => handleSportChange(Number(e.target.value))} required className="input">
               {sports.map((s) => <option key={s.id} value={s.id}>{s.nom}</option>)}
             </select>
           </div>
@@ -71,13 +86,14 @@ export default function MatchNewPage() {
             <div>
               <label className="block text-sm text-gray-500 mb-1">Equipe 1</label>
               <select value={form.equipe1Id} onChange={(e) => setForm({ ...form, equipe1Id: Number(e.target.value) })} required className="input">
-                {equipes.map((eq) => <option key={eq.id} value={eq.id}>{eq.nom}</option>)}
+                {filteredEquipes.map((eq) => <option key={eq.id} value={eq.id}>{eq.nom}</option>)}
               </select>
+              {filteredEquipes.length === 0 && <p className="text-xs text-gray-400 mt-1">Aucune equipe pour ce sport</p>}
             </div>
             <div>
               <label className="block text-sm text-gray-500 mb-1">Equipe 2</label>
               <select value={form.equipe2Id} onChange={(e) => setForm({ ...form, equipe2Id: Number(e.target.value) })} required className="input">
-                {equipes.map((eq) => <option key={eq.id} value={eq.id}>{eq.nom}</option>)}
+                {filteredEquipes.map((eq) => <option key={eq.id} value={eq.id}>{eq.nom}</option>)}
               </select>
             </div>
           </div>
@@ -95,7 +111,7 @@ export default function MatchNewPage() {
             <label className="block text-sm text-gray-500 mb-1">Description</label>
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input" rows={3} />
           </div>
-          <button type="submit" disabled={loading} className="btn-primary w-full">
+          <button type="submit" disabled={loading || filteredEquipes.length < 2} className="btn-primary w-full disabled:opacity-50">
             {loading ? 'Creation...' : 'Creer le match'}
           </button>
         </form>

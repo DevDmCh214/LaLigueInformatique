@@ -9,6 +9,7 @@ export class EquipesService {
   async findAll() {
     return this.prisma.equipe.findMany({
       include: {
+        sport: { select: { id: true, nom: true } },
         _count: { select: { membres: true, participations: true } },
       },
       orderBy: { nom: 'asc' },
@@ -19,6 +20,7 @@ export class EquipesService {
     const equipe = await this.prisma.equipe.findUnique({
       where: { id },
       include: {
+        sport: { select: { id: true, nom: true } },
         membres: {
           include: {
             utilisateur: { select: { id: true, nom: true, prenom: true, email: true } },
@@ -48,15 +50,17 @@ export class EquipesService {
       data: {
         nom: dto.nom,
         nombrePlaces: dto.nombrePlaces,
+        sportId: dto.sportId,
         membres: { create: { utilisateurId: userId } },
       },
+      include: { sport: { select: { id: true, nom: true } } },
     });
   }
 
   async update(id: number, dto: CreateEquipeDto) {
     return this.prisma.equipe.update({
       where: { id },
-      data: { nom: dto.nom, nombrePlaces: dto.nombrePlaces },
+      data: { nom: dto.nom, nombrePlaces: dto.nombrePlaces, sportId: dto.sportId },
     });
   }
 

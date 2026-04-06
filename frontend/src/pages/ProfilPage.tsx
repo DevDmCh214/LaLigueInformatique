@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProfilPage() {
+  const { refreshProfile } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [allSports, setAllSports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,8 @@ export default function ProfilPage() {
     // Refetch profile to update subscription state
     const updatedProfile = await api.get<any>('/auth/me');
     setProfile(updatedProfile);
+    // Keep AuthContext in sync so subscribedSportIds updates across the app
+    await refreshProfile();
     setActionLoading(null);
   }
 

@@ -31,6 +31,7 @@ model Sport {
   nom String @unique
 
   evenements   Evenement[]
+  equipes      Equipe[]
   inscriptions SportInscription[]
 }
 
@@ -39,7 +40,9 @@ model Equipe {
   id           Int    @id @default(autoincrement())
   nom          String
   nombrePlaces Int
+  sportId      Int
 
+  sport          Sport                @relation(fields: [sportId], references: [id])
   membres        Appartenir[]
   participations EquipeParticipante[]
   matchsGagnes   Match[]              @relation("EquipeGagnante")

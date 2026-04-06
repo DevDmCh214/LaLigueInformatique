@@ -11,7 +11,7 @@ const reponseOptions = [
 
 export default function MatchDetailPage() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [match, setMatch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -68,30 +68,32 @@ export default function MatchDetailPage() {
             </div>
           ))}
         </div>
-        <div className="border-t border-gray-200 pt-4">
-          <p className="text-sm text-gray-500 mb-2">Definir le gagnant :</p>
-          <div className="flex gap-2 flex-wrap">
-            {equipes.map((eq: any) => (
-              <button
-                key={eq.id}
-                onClick={() => setWinner(eq.id)}
-                disabled={actionLoading}
-                className={`btn ${
-                  match.equipeGagnanteId === eq.id
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                }`}
-              >
-                {eq.nom}
-              </button>
-            ))}
-            {match.equipeGagnanteId && (
-              <button onClick={() => setWinner(null)} disabled={actionLoading} className="btn-secondary">
-                Retirer
-              </button>
-            )}
+        {isAdmin && (
+          <div className="border-t border-gray-200 pt-4">
+            <p className="text-sm text-gray-500 mb-2">Definir le gagnant :</p>
+            <div className="flex gap-2 flex-wrap">
+              {equipes.map((eq: any) => (
+                <button
+                  key={eq.id}
+                  onClick={() => setWinner(eq.id)}
+                  disabled={actionLoading}
+                  className={`btn ${
+                    match.equipeGagnanteId === eq.id
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  }`}
+                >
+                  {eq.nom}
+                </button>
+              ))}
+              {match.equipeGagnanteId && (
+                <button onClick={() => setWinner(null)} disabled={actionLoading} className="btn-secondary">
+                  Retirer
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

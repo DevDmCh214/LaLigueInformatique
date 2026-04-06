@@ -12,7 +12,7 @@ const reponseOptions = [
 export default function EvenementDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [evenement, setEvenement] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -63,9 +63,11 @@ export default function EvenementDetailPage() {
           <h1 className="text-xl font-semibold text-gray-700">{evenement.entitule}</h1>
           <p className="text-sm text-gray-400">{evenement.sport.nom} — {evenement.participants} participant(s)</p>
         </div>
-        <button onClick={handleDelete} disabled={actionLoading} className="btn-danger">
-          {actionLoading ? '...' : 'Supprimer'}
-        </button>
+        {isAdmin && (
+          <button onClick={handleDelete} disabled={actionLoading} className="btn-danger">
+            {actionLoading ? '...' : 'Supprimer'}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

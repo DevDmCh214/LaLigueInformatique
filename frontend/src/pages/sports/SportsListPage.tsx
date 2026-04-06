@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SportsListPage() {
+  const { isAdmin } = useAuth();
   const [sports, setSports] = useState<any[]>([]);
   const [inscritIds, setInscritIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -23,13 +25,17 @@ export default function SportsListPage() {
     <div>
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-xl font-semibold text-gray-700">Sports</h1>
-        <Link to="/sports/new" className="btn-primary text-xs">+ Nouveau sport</Link>
+        {isAdmin && (
+          <Link to="/sports/new" className="btn-primary text-xs">+ Nouveau sport</Link>
+        )}
       </div>
 
       {sports.length === 0 ? (
         <div className="card text-center py-10">
           <p className="text-gray-400 mb-4">Aucun sport enregistre.</p>
-          <Link to="/sports/new" className="btn-primary">Creer un sport</Link>
+          {isAdmin && (
+            <Link to="/sports/new" className="btn-primary">Creer un sport</Link>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

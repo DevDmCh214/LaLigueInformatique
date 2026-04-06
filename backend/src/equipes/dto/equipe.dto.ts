@@ -8,4 +8,7 @@ export class CreateEquipeDto {
   @IsInt()
   @Min(1, { message: 'Le nombre de places doit etre au moins 1' })
   nombrePlaces: number;
+
+  @IsInt()
+  sportId: number;
 }
