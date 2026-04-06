@@ -97,6 +97,9 @@ describe('MatchsService', () => {
     });
 
     it('should allow removing winner (null)', async () => {
+      prisma.match.findUnique.mockResolvedValue({
+        id: 1, equipeGagnanteId: null, evenement: { id: 10, participants: 6 },
+      });
       prisma.match.update.mockResolvedValue({ id: 1, equipeGagnanteId: null });
 
       const result = await service.setWinner(1, null);
