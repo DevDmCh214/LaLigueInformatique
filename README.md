@@ -114,11 +114,10 @@ Ouvrir [http://localhost:5173](http://localhost:5173) dans le navigateur.
 - Client HTTP et intercepteurs
 - Gestion d'état AuthContext
 
-Lancer tous les tests :
+Lancer les tests :
 ```bash
-npm test                # Backend + Frontend
-npm run test:backend    # Backend uniquement (26 tests)
-npm run test:frontend   # Frontend uniquement (7 tests)
+cd backend && npm test      # Backend uniquement (26 tests)
+cd frontend && npm test     # Frontend uniquement (7 tests)
 ```
 
 ## Comptes de démonstration
@@ -180,7 +179,7 @@ LaLigueInformatique/
 │   │   ├── context/          # AuthContext (état d'authentification global)
 │   │   └── api/              # Client HTTP (URL de base : http://localhost:3000/api)
 │   └── package.json
-└── package.json              # Scripts racine (test, seed, studio)
+└── README.md
 ```
 
 ## Schéma de la base de données
@@ -364,8 +363,6 @@ Les tables `Connexion`, `Session` et `AuditLog` ne sont pas exposées via l'API.
 ### Via Prisma Studio (interface graphique)
 
 ```bash
-npm run db:studio    # depuis la racine
-# ou
 cd backend && npx prisma studio
 ```
 
@@ -436,20 +433,13 @@ ORDER BY echecs DESC;
 
 ## Commandes utiles
 
-| Commande | Description |
-|----------|-------------|
-| `npm test` | Lancer tous les tests (backend + frontend) |
-| `npm run test:backend` | Tests backend uniquement (26 tests) |
-| `npm run test:frontend` | Tests frontend uniquement (7 tests) |
-| `npm run db:seed` | Insérer les données de démonstration |
-| `npm run db:studio` | Ouvrir Prisma Studio (interface graphique BDD) |
-
 ### Backend (`cd backend`)
 
 | Commande | Description |
 |----------|-------------|
 | `npm run start:dev` | Démarrer le serveur de dev avec rechargement auto |
 | `npm run build` | Compiler pour la production |
+| `npm test` | Lancer les tests (26 tests) |
 | `npm run db:migrate` | Appliquer les migrations Prisma |
 | `npm run db:seed` | Insérer les données de démonstration |
 | `npm run db:studio` | Ouvrir Prisma Studio |
@@ -460,4 +450,5 @@ ORDER BY echecs DESC;
 |----------|-------------|
 | `npm run dev` | Démarrer le serveur Vite |
 | `npm run build` | Compiler pour la production |
+| `npm test` | Lancer les tests (7 tests) |
 | `npm run preview` | Prévisualiser la build de production |
