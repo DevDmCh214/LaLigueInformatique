@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(python -c \"from reportlab.lib.pagesizes import A4; print\\('ok'\\)\")",
-      "Bash(pip install:*)",
-      "Bash(python generate_mvc_pdf.py)"
-    ]
-  }
-}

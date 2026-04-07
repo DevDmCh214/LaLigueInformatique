@@ -1,7 +1,7 @@
 # La Ligue Informatique
 
 Application web de gestion de ligue sportive : équipes, événements, matchs et suivi de présence des membres.
-
+ 
 
 # Cas d'utilisation
  
